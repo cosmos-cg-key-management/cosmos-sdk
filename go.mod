@@ -41,7 +41,6 @@ require (
 	github.com/tendermint/go-amino v0.15.0
 	github.com/tendermint/iavl v0.12.2
 	github.com/tendermint/tendermint v0.31.5
-	github.com/wasmerio/go-ext-wasm v0.0.0-20190612094245-722faa9f1b90
 	golang.org/x/crypto v0.0.0-20180904163835-0709b304e793
 	google.golang.org/grpc v1.19.0 // indirect
 	gopkg.in/yaml.v2 v2.2.2

@@ -54,10 +54,6 @@ func (msg MsgSend) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.FromAddress}
 }
 
-func (msg MsgSend) Actor() sdk.AccAddress {
-	return msg.FromAddress
-}
-
 // MsgMultiSend - high level transaction of the coin module
 type MsgMultiSend struct {
 	Inputs  []Input  `json:"inputs"`

@@ -105,6 +105,8 @@ func (bldr TxBuilder) Memo() string { return bldr.memo }
 // Fees returns the fees for the transaction
 func (bldr TxBuilder) Fees() sdk.Coins { return bldr.fees }
 
+func (bldr *TxBuilder) FeeAccount() sdk.AccAddress { return bldr.feeAccount; }
+
 // GasPrices returns the gas prices set for the transaction, if any.
 func (bldr TxBuilder) GasPrices() sdk.DecCoins { return bldr.gasPrices }
 
@@ -136,6 +138,11 @@ func (bldr TxBuilder) WithFees(fees string) TxBuilder {
 	bldr.fees = parsedFees
 	return bldr
 }
+
+func (bldr *TxBuilder) WithFeeAccount(addr sdk.AccAddress) {
+	bldr.feeAccount = addr
+}
+
 
 // WithGasPrices returns a copy of the context with updated gas prices.
 func (bldr TxBuilder) WithGasPrices(gasPrices string) TxBuilder {
@@ -271,10 +278,6 @@ func (bldr TxBuilder) SignStdTx(name, passphrase string, stdTx StdTx, appendSig 
 	}
 	signedStdTx = NewStdTx(stdTx.GetMsgs(), stdTx.Fee, sigs, stdTx.GetMemo(), bldr.feeAccount)
 	return
-}
-
-func (bldr *TxBuilder) WithFeeAccount(addr sdk.AccAddress) {
-	bldr.feeAccount = addr
 }
 
 // MakeSignature builds a StdSignature given keybase, key name, passphrase, and a StdSignMsg.

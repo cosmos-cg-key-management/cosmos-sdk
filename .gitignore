@@ -45,8 +45,3 @@ dependency-graph.png
 *.aux
 *.out
 *.synctex.gz
-
-# Rust
-**/target/
-**/Cargo.lock
-**/*.rs.bk

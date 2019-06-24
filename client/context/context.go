@@ -22,7 +22,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptokeys "github.com/cosmos/cosmos-sdk/crypto/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 var (
@@ -33,30 +32,25 @@ var (
 // CLIContext implements a typical CLI context created in SDK modules for
 // transaction handling and queries.
 type CLIContext struct {
-	Codec          *codec.Codec
-	AccDecoder     authtypes.AccountDecoder
-	Client         rpcclient.Client
-	Keybase        cryptokeys.Keybase
-	Output         io.Writer
-	OutputFormat   string
-	Height         int64
-	NodeURI        string
-	From           string
-	AccountStore   string
-	TrustNode      bool
-	UseLedger      bool
-	BroadcastMode  string
-	PrintResponse  bool
-	Verifier       tmlite.Verifier
-	VerifierHome   string
-	Simulate       bool
-	GenerateOnly   bool
-	FromAddress    sdk.AccAddress
-	SendAsAddress  sdk.AccAddress
-	FromName       string
-	Indent         bool
-	SkipConfirm    bool
-	CreateProposal func(cliCtx CLIContext, proposeAddress sdk.AccAddress, msgs []sdk.Msg) sdk.Msg
+	Codec         *codec.Codec
+	Client        rpcclient.Client
+	Keybase       cryptokeys.Keybase
+	Output        io.Writer
+	OutputFormat  string
+	Height        int64
+	NodeURI       string
+	From          string
+	TrustNode     bool
+	UseLedger     bool
+	BroadcastMode string
+	Verifier      tmlite.Verifier
+	VerifierHome  string
+	Simulate      bool
+	GenerateOnly  bool
+	FromAddress   sdk.AccAddress
+	FromName      string
+	Indent        bool
+	SkipConfirm   bool
 }
 
 // NewCLIContextWithFrom returns a new initialized CLIContext with parameters from the
@@ -90,14 +84,12 @@ func NewCLIContextWithFrom(from string) CLIContext {
 		Client:        rpc,
 		Output:        os.Stdout,
 		NodeURI:       nodeURI,
-		AccountStore:  authtypes.StoreKey,
 		From:          viper.GetString(flags.FlagFrom),
 		OutputFormat:  viper.GetString(cli.OutputFlag),
 		Height:        viper.GetInt64(flags.FlagHeight),
 		TrustNode:     viper.GetBool(flags.FlagTrustNode),
 		UseLedger:     viper.GetBool(flags.FlagUseLedger),
 		BroadcastMode: viper.GetString(flags.FlagBroadcastMode),
-		PrintResponse: viper.GetBool(flags.FlagPrintResponse),
 		Verifier:      verifier,
 		Simulate:      viper.GetBool(flags.FlagDryRun),
 		GenerateOnly:  genOnly,
@@ -110,9 +102,7 @@ func NewCLIContextWithFrom(from string) CLIContext {
 
 // NewCLIContext returns a new initialized CLIContext with parameters from the
 // command line using Viper.
-func NewCLIContext() CLIContext {
-	return NewCLIContextWithFrom(viper.GetString(flags.FlagFrom))
-}
+func NewCLIContext() CLIContext { return NewCLIContextWithFrom(viper.GetString(flags.FlagFrom)) }
 
 func createVerifier() tmlite.Verifier {
 	trustNodeDefined := viper.IsSet(flags.FlagTrustNode)
@@ -166,34 +156,9 @@ func (ctx CLIContext) WithCodec(cdc *codec.Codec) CLIContext {
 	return ctx
 }
 
-// GetAccountDecoder gets the account decoder for auth.DefaultAccount.
-func GetAccountDecoder(cdc *codec.Codec) authtypes.AccountDecoder {
-	return func(accBytes []byte) (acct authtypes.Account, err error) {
-		err = cdc.UnmarshalBinaryBare(accBytes, &acct)
-		if err != nil {
-			panic(err)
-		}
-
-		return acct, err
-	}
-}
-
-// WithAccountDecoder returns a copy of the context with an updated account
-// decoder.
-func (ctx CLIContext) WithAccountDecoder(cdc *codec.Codec) CLIContext {
-	ctx.AccDecoder = GetAccountDecoder(cdc)
-	return ctx
-}
-
 // WithOutput returns a copy of the context with an updated output writer (e.g. stdout).
 func (ctx CLIContext) WithOutput(w io.Writer) CLIContext {
 	ctx.Output = w
-	return ctx
-}
-
-// WithAccountStore returns a copy of the context with an updated AccountStore.
-func (ctx CLIContext) WithAccountStore(accountStore string) CLIContext {
-	ctx.AccountStore = accountStore
 	return ctx
 }
 
