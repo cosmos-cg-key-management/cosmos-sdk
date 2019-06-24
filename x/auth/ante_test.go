@@ -154,7 +154,7 @@ func TestAnteHandlerAccountNumbers(t *testing.T) {
 func TestAnteHandlerAccountNumbersAtBlockHeightZero(t *testing.T) {
 	// setup
 	input := setupTestInput()
-	anteHandler := NewAnteHandler(input.ak, input.sk, DefaultSigVerificationGasConsumer)
+	anteHandler := NewAnteHandler(input.ak, input.sk, nil, DefaultSigVerificationGasConsumer)
 	ctx := input.ctx.WithBlockHeight(0)
 
 	// keys and addresses
@@ -210,7 +210,7 @@ func TestAnteHandlerAccountNumbersAtBlockHeightZero(t *testing.T) {
 func TestAnteHandlerSequences(t *testing.T) {
 	// setup
 	input := setupTestInput()
-	anteHandler := NewAnteHandler(input.ak, input.sk, DefaultSigVerificationGasConsumer)
+	anteHandler := NewAnteHandler(input.ak, input.sk, nil, DefaultSigVerificationGasConsumer)
 	ctx := input.ctx.WithBlockHeight(1)
 
 	// keys and addresses
@@ -288,7 +288,7 @@ func TestAnteHandlerFees(t *testing.T) {
 	// setup
 	input := setupTestInput()
 	ctx := input.ctx
-	anteHandler := NewAnteHandler(input.ak, input.sk, DefaultSigVerificationGasConsumer)
+	anteHandler := NewAnteHandler(input.ak, input.sk, nil, DefaultSigVerificationGasConsumer)
 
 	// keys and addresses
 	priv1, _, addr1 := types.KeyTestPubAddr()
@@ -327,7 +327,7 @@ func TestAnteHandlerFees(t *testing.T) {
 func TestAnteHandlerMemoGas(t *testing.T) {
 	// setup
 	input := setupTestInput()
-	anteHandler := NewAnteHandler(input.ak, input.sk, DefaultSigVerificationGasConsumer)
+	anteHandler := NewAnteHandler(input.ak, input.sk, nil, DefaultSigVerificationGasConsumer)
 	ctx := input.ctx.WithBlockHeight(1)
 
 	// keys and addresses
@@ -367,7 +367,7 @@ func TestAnteHandlerMemoGas(t *testing.T) {
 func TestAnteHandlerMultiSigner(t *testing.T) {
 	// setup
 	input := setupTestInput()
-	anteHandler := NewAnteHandler(input.ak, input.sk, DefaultSigVerificationGasConsumer)
+	anteHandler := NewAnteHandler(input.ak, input.sk, nil, DefaultSigVerificationGasConsumer)
 	ctx := input.ctx.WithBlockHeight(1)
 
 	// keys and addresses
@@ -417,7 +417,7 @@ func TestAnteHandlerMultiSigner(t *testing.T) {
 func TestAnteHandlerBadSignBytes(t *testing.T) {
 	// setup
 	input := setupTestInput()
-	anteHandler := NewAnteHandler(input.ak, input.sk, DefaultSigVerificationGasConsumer)
+	anteHandler := NewAnteHandler(input.ak, input.sk, nil, DefaultSigVerificationGasConsumer)
 	ctx := input.ctx.WithBlockHeight(1)
 
 	// keys and addresses
@@ -472,7 +472,7 @@ func TestAnteHandlerBadSignBytes(t *testing.T) {
 	for _, cs := range cases {
 		tx := types.NewTestTxWithSignBytes(
 			msgs, privs, accnums, seqs, fee,
-			StdSignBytes(cs.chainID, cs.accnum, cs.seq, cs.fee, cs.msgs, ""),
+			StdSignBytes(cs.chainID, cs.accnum, cs.seq, cs.fee, cs.msgs, "", nil),
 			"",
 		)
 		checkInvalidTx(t, anteHandler, ctx, tx, false, cs.code)
