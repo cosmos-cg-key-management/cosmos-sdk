@@ -25,7 +25,6 @@ type Group struct {
 	DecisionThreshold sdk.Int `json:"decision_threshold"`
 	// TODO maybe make this something more specific to a domain name or a claim on identity? or Info leave it generic
 	Memo string `json:"memo,omitempty"`
-	ID   sdk.AccAddress
 }
 
 // A member specifies a address and a weight for a group member

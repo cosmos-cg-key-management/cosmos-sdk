@@ -150,10 +150,14 @@ func (keeper Keeper) getNewGroupId(ctx sdk.Context) sdk.AccAddress {
 	return addrFromUint64(groupId)
 }
 
-func (keeper Keeper) CreateGroup(ctx sdk.Context, info Group) (sdk.AccAddress, sdk.Error) {
+func (keeper Keeper) CreateGroup(ctx sdk.Context, members []Member, decisionThreshold sdk.Int, owner sdk.AccAddress, memo string) (sdk.AccAddress, sdk.Error) {
 	id := keeper.getNewGroupId(ctx)
-	info.ID = id
-	keeper.setGroupInfo(ctx, id, info)
+	store := ctx.KVStore(keeper.storeKey)
+	// iterate through members in group and add member <-> group id association
+	for _, member := range members {
+		key := KeyGroupIDByMemberAddress(member.Address, id)
+		store.Set(key, id)
+	}
 	acct := &GroupAccount{
 		BaseAccount: &auth.BaseAccount{
 			Address: id,
@@ -165,27 +169,7 @@ func (keeper Keeper) CreateGroup(ctx sdk.Context, info Group) (sdk.AccAddress, s
 	}
 	keeper.accountKeeper.SetAccount(ctx, acct)
 
-	// iterate through members in group and add member <-> group id association
-	for _, member := range info.Members {
-		key := KeyGroupIDByMemberAddress(member.Address, id)
-		store := ctx.KVStore(keeper.storeKey)
-		store.Set(key, id)
-	}
-
 	return id, nil
-}
-
-func (keeper Keeper) setGroupInfo(ctx sdk.Context, id sdk.AccAddress, info Group) {
-	store := ctx.KVStore(keeper.storeKey)
-	bz, err := keeper.cdc.MarshalBinaryBare(info)
-	if err != nil {
-		panic(err)
-	}
-	store.Set(KeyGroupID(id), bz)
-}
-
-func (keeper Keeper) UpdateGroupInfo(ctx sdk.Context, id sdk.AccAddress, info Group) {
-	keeper.setGroupInfo(ctx, id, info)
 }
 
 func (keeper Keeper) Authorize(ctx sdk.Context, group sdk.AccAddress, signers []sdk.AccAddress) bool {

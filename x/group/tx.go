@@ -20,14 +20,6 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		Short: "Group transactions subcommands",
 	}
 
-	// agentTxCmd.AddCommand(client.PostCommands(
-	// 	agentcmd.GetCmdCreateGroup(mc.cdc),
-	// 	agentcmd.GetCmdApprove(mc.cdc),
-	// 	agentcmd.GetCmdUnapprove(mc.cdc),
-	// 	agentcmd.GetCmdTryExec(mc.cdc),
-	// 	agentcmd.GetCmdWithdraw(mc.cdc),
-	// )...)
-
 	groupTxCmd.AddCommand(client.PostCommands(
 		GetCmdApprove(cdc),
 		GetCmdCreateGroup(cdc),
@@ -72,11 +64,12 @@ func membersFromArray(arr []string) []Member {
 func GetCmdCreateGroup(cdc *codec.Codec) *cobra.Command {
 	var threshold int64
 	var members []string
+    var memo string
+	var ownerStr string
 
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "create an group",
-		//Args:  cobra.MinimumNArgs(1),
 		PreRun: func(cmd *cobra.Command, args []string) {
 
 		},
@@ -87,17 +80,20 @@ func GetCmdCreateGroup(cdc *codec.Codec) *cobra.Command {
 
 			account := cliCtx.GetFromAddress()
 
-			info := Group{
-				Members:           membersFromArray(members),
-				DecisionThreshold: sdk.NewInt(threshold),
+			var ownerAddr sdk.AccAddress
+			var err error
+			if len(ownerStr) != 0 {
+				ownerAddr, err = sdk.AccAddressFromBech32(ownerStr)
+				if err != nil {
+					return err
+				}
 			}
 
-			msg := NewMsgCreateGroup(info, account)
-			err := msg.ValidateBasic()
+			msg := NewMsgCreateGroup(account, ownerAddr, membersFromArray(members), sdk.NewInt(threshold), memo)
+			err = msg.ValidateBasic()
 			if err != nil {
 				return err
 			}
-
 			cliCtx.PrintResponse = true
 
 			return utils.CompleteAndBroadcastTxCLI(txBldr, cliCtx, []sdk.Msg{msg})
@@ -106,6 +102,8 @@ func GetCmdCreateGroup(cdc *codec.Codec) *cobra.Command {
 
 	cmd.Flags().Int64Var(&threshold, "decision-threshold", 1, "Decision threshold")
 	cmd.Flags().StringArrayVar(&members, "members", []string{}, "Members")
+	cmd.Flags().StringVar(&memo, "memo", "", "Memo")
+	cmd.Flags().StringVar(&ownerStr, "owner", "", "The group owner who can change the group composition, leave blank for the group to own itself")
 
 	return cmd
 }

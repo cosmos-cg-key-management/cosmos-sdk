@@ -1,32 +1,62 @@
 package group
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/delegation"
-	abci "github.com/tendermint/tendermint/abci/types"
+	//"github.com/cosmos/cosmos-sdk/x/delegation"
+	//abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // Creates a group on the blockchain
 // Should return a tag "group.id" with the bech32 address of the group
 type MsgCreateGroup struct {
-	Data   Group          `json:"data"`
 	Signer sdk.AccAddress `json:"signer"`
+	Owner sdk.AccAddress `json:"owner"`
+	// The members of the group and their associated weight
+	Members []Member `json:"members,omitempty"`
+	// Specifies the number of votes that must be accumulated in order for a decision to be made by the group.
+	// A member gets as many votes as is indicated by their Weight field.
+	// A big integer is used here to avoid any potential vulnerabilities from overflow errors
+	// where large weight and threshold values are used.
+	DecisionThreshold sdk.Int `json:"decision_threshold"`
+	// TODO maybe make this something more specific to a domain name or a claim on identity? or Info leave it generic
+	Memo string `json:"memo,omitempty"`
 }
 
-type MsgUpdateGroup struct {
+func NewMsgCreateGroup(signer sdk.AccAddress, owner sdk.AccAddress, members []Member, decisionThreshold sdk.Int, memo string) MsgCreateGroup {
+	return MsgCreateGroup{Signer: signer, Owner: owner, Members: members, DecisionThreshold: decisionThreshold, Memo: memo}
+}
+
+type MsgUpdateGroupStructure struct {
+	Signer sdk.AccAddress `json:"signer"`
 	GroupID sdk.AccAddress `json:"group_id"`
-	Data    Group          `json:"data"`
+	MemberUpdates []Member `json:"members,omitempty"`
+	// Specifies the number of votes that must be accumulated in order for a decision to be made by the group.
+	// A member gets as many votes as is indicated by their Weight field.
+	// A big integer is used here to avoid any potential vulnerabilities from overflow errors
+	// where large weight and threshold values are used.
+	DecisionThreshold sdk.Int `json:"decision_threshold"`
+}
+
+type MsgChangeGroupOwner struct {
+	Signer sdk.AccAddress `json:"signer"`
+	GroupID sdk.AccAddress `json:"group_id"`
+	NewOwner sdk.AccAddress `json:"new_owner"`
+}
+
+type MsgChangeGroupMemo struct {
+	Signer sdk.AccAddress `json:"signer"`
+	GroupID sdk.AccAddress `json:"group_id"`
+	Memo string `json:"memo,omitempty"`
 }
 
 type CapabilityUpdateGroup struct {
 	GroupIDs []sdk.AccAddress `json:"group_ids"`
 }
 
-var _ delegation.Capability = CapabilityUpdateGroup{}
+//var _ delegation.Capability = CapabilityUpdateGroup{}
 
 type MsgCreateProposal struct {
 	Proposer sdk.AccAddress `json:"proposer"`
@@ -52,13 +82,6 @@ type MsgWithdrawProposal struct {
 	Proposer   sdk.AccAddress `json:"proposer"`
 }
 
-func NewMsgCreateGroup(group Group, signer sdk.AccAddress) MsgCreateGroup {
-	return MsgCreateGroup{
-		Data:   group,
-		Signer: signer,
-	}
-}
-
 func (msg MsgCreateGroup) Route() string { return "group" }
 
 func (msg MsgCreateGroup) Type() string { return "group.create" }
@@ -74,7 +97,13 @@ func (info Group) ValidateBasic() sdk.Error {
 }
 
 func (msg MsgCreateGroup) ValidateBasic() sdk.Error {
-	return msg.Data.ValidateBasic()
+	if !msg.DecisionThreshold.IsPositive() {
+		return sdk.ErrUnknownRequest("DecisionThreshold must be positive")
+	}
+	if len(msg.Members) == 0 {
+		return sdk.ErrUnknownRequest("Members cannot be empty")
+	}
+	return nil
 }
 
 func (msg MsgCreateGroup) GetSignBytes() []byte {
@@ -173,44 +202,44 @@ func (msg MsgWithdrawProposal) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Proposer}
 }
 
-func (msg MsgUpdateGroup) Route() string {
-	return "group"
-}
-
-func (msg MsgUpdateGroup) Type() string {
-	return "group.update"
-}
-
-func (msg MsgUpdateGroup) ValidateBasic() sdk.Error {
-	return msg.Data.ValidateBasic()
-}
-
-func (msg MsgUpdateGroup) GetSignBytes() []byte {
-	b, err := json.Marshal(msg)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
-}
-
-func (msg MsgUpdateGroup) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.GroupID}
-}
-
-func (cap CapabilityUpdateGroup) MsgType() sdk.Msg {
-	return MsgUpdateGroup{}
-}
-
-func (cap CapabilityUpdateGroup) Accept(msg sdk.Msg, block abci.Header) (allow bool, updated delegation.Capability, delete bool) {
-	switch msg := msg.(type) {
-	case MsgUpdateGroup:
-		for _, g := range cap.GroupIDs {
-			if bytes.Equal(g, msg.GroupID) {
-				return true, nil, false
-			}
-		}
-		return false, nil, false
-	default:
-		panic("Unexpected")
-	}
-}
+//func (msg MsgUpdateGroup) Route() string {
+//	return "group"
+//}
+//
+//func (msg MsgUpdateGroup) Type() string {
+//	return "group.update"
+//}
+//
+//func (msg MsgUpdateGroup) ValidateBasic() sdk.Error {
+//	return msg.Data.ValidateBasic()
+//}
+//
+//func (msg MsgUpdateGroup) GetSignBytes() []byte {
+//	b, err := json.Marshal(msg)
+//	if err != nil {
+//		panic(err)
+//	}
+//	return sdk.MustSortJSON(b)
+//}
+//
+//func (msg MsgUpdateGroup) GetSigners() []sdk.AccAddress {
+//	return []sdk.AccAddress{msg.GroupID}
+//}
+//
+//func (cap CapabilityUpdateGroup) MsgType() sdk.Msg {
+//	return MsgUpdateGroup{}
+//}
+//
+//func (cap CapabilityUpdateGroup) Accept(msg sdk.Msg, block abci.Header) (allow bool, updated delegation.Capability, delete bool) {
+//	switch msg := msg.(type) {
+//	case MsgUpdateGroup:
+//		for _, g := range cap.GroupIDs {
+//			if bytes.Equal(g, msg.GroupID) {
+//				return true, nil, false
+//			}
+//		}
+//		return false, nil, false
+//	default:
+//		panic("Unexpected")
+//	}
+//}

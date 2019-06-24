@@ -55,11 +55,7 @@ func createdGroupHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		signer := cliCtx.GetFromAddress()
-		info := Group{
-			Members:           members,
-			DecisionThreshold: sdk.NewInt(10),
-		}
-		msg := NewMsgCreateGroup(info, signer)
+		msg := NewMsgCreateGroup(signer, nil, members, sdk.NewInt(10), "")
 
 		clientrest.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
 	}

@@ -20,8 +20,6 @@ func NewHandler(keeper Keeper) sdk.Handler {
 			return handleMsgTryExecuteProposal(ctx, keeper, msg)
 		case MsgWithdrawProposal:
 			return handleMsgWithdrawProposal(ctx, keeper, msg)
-		case MsgUpdateGroup:
-			return handleMsgUpdateGroup(ctx, keeper, msg)
 		default:
 			errMsg := fmt.Sprintf("Unrecognized data Msg type: %v", msg.Type())
 			return sdk.ErrUnknownRequest(errMsg).Result()
@@ -30,7 +28,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 func handleMsgCreateGroup(ctx sdk.Context, keeper Keeper, msg MsgCreateGroup) sdk.Result {
-	id, err := keeper.CreateGroup(ctx, msg.Data)
+	id, err := keeper.CreateGroup(ctx, msg.Members, msg.DecisionThreshold, msg.Owner, msg.Memo)
 	if err != nil {
 		return sdk.Result{
 			Code: sdk.CodeUnknownAddress,
@@ -68,7 +66,3 @@ func handleMsgWithdrawProposal(ctx sdk.Context, keeper Keeper, msg MsgWithdrawPr
 	return keeper.Withdraw(ctx, msg.ProposalID, msg.Proposer)
 }
 
-func handleMsgUpdateGroup(ctx sdk.Context, keeper Keeper, msg MsgUpdateGroup) sdk.Result {
-	keeper.UpdateGroupInfo(ctx, msg.GroupID, msg.Data)
-	return sdk.Result{}
-}
