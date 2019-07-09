@@ -3,6 +3,7 @@ package group
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/tendermint/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	//"github.com/cosmos/cosmos-sdk/x/delegation"
@@ -13,26 +14,26 @@ import (
 // Should return a tag "group.id" with the bech32 address of the group
 type MsgCreateGroup struct {
 	Signer sdk.AccAddress `json:"signer"`
-	Owner sdk.AccAddress `json:"owner"`
+	Owner  sdk.AccAddress `json:"owner"`
 	// The members of the group and their associated weight
 	Members []Member `json:"members,omitempty"`
-	// Specifies the number of votes that must be accumulated in order for a decision to be made by the group.
-	// A member gets as many votes as is indicated by their Weight field.
-	// A big integer is used here to avoid any potential vulnerabilities from overflow errors
-	// where large weight and threshold values are used.
-	DecisionThreshold sdk.Int `json:"decision_threshold"`
 	// TODO maybe make this something more specific to a domain name or a claim on identity? or Info leave it generic
 	Memo string `json:"memo,omitempty"`
 }
 
-func NewMsgCreateGroup(signer sdk.AccAddress, owner sdk.AccAddress, members []Member, decisionThreshold sdk.Int, memo string) MsgCreateGroup {
-	return MsgCreateGroup{Signer: signer, Owner: owner, Members: members, DecisionThreshold: decisionThreshold, Memo: memo}
+type MsgCreateGroupPolicy struct {
+	Signer         sdk.AccAddress `json:"signer"`
+	Owner          sdk.AccAddress `json:"owner"`
+	Group          GroupID        `json:"group"`
+	DecisionPolicy DecisionPolicy `json:"decision_policy"`
+	Memo           string         `json:"memo,omitempty"`
 }
 
-type MsgUpdateGroupStructure struct {
-	Signer sdk.AccAddress `json:"signer"`
-	GroupID sdk.AccAddress `json:"group_id"`
-	MemberUpdates []Member `json:"members,omitempty"`
+type DecisionPolicy interface {
+	Allow(header types.Header, voteCount sdk.Int, totalPower sdk.Int)
+}
+
+type ThresholdDecisionPolicy struct {
 	// Specifies the number of votes that must be accumulated in order for a decision to be made by the group.
 	// A member gets as many votes as is indicated by their Weight field.
 	// A big integer is used here to avoid any potential vulnerabilities from overflow errors
@@ -40,16 +41,32 @@ type MsgUpdateGroupStructure struct {
 	DecisionThreshold sdk.Int `json:"decision_threshold"`
 }
 
+type PercentageDecisionPolicy struct {
+	Percent sdk.Dec `json:"percent"`
+}
+
+type GroupID uint64
+
+func NewMsgCreateGroup(signer sdk.AccAddress, owner sdk.AccAddress, members []Member, memo string) MsgCreateGroup {
+	return MsgCreateGroup{Signer: signer, Owner: owner, Members: members, Memo: memo}
+}
+
+type MsgUpdateGroupStructure struct {
+	Signer        sdk.AccAddress `json:"signer"`
+	GroupID       sdk.AccAddress `json:"group_id"`
+	MemberUpdates []Member       `json:"members,omitempty"`
+}
+
 type MsgChangeGroupOwner struct {
-	Signer sdk.AccAddress `json:"signer"`
-	GroupID sdk.AccAddress `json:"group_id"`
+	Signer   sdk.AccAddress `json:"signer"`
+	GroupID  sdk.AccAddress `json:"group_id"`
 	NewOwner sdk.AccAddress `json:"new_owner"`
 }
 
 type MsgChangeGroupMemo struct {
-	Signer sdk.AccAddress `json:"signer"`
+	Signer  sdk.AccAddress `json:"signer"`
 	GroupID sdk.AccAddress `json:"group_id"`
-	Memo string `json:"memo,omitempty"`
+	Memo    string         `json:"memo,omitempty"`
 }
 
 type CapabilityUpdateGroup struct {
@@ -97,9 +114,6 @@ func (info Group) ValidateBasic() sdk.Error {
 }
 
 func (msg MsgCreateGroup) ValidateBasic() sdk.Error {
-	if !msg.DecisionThreshold.IsPositive() {
-		return sdk.ErrUnknownRequest("DecisionThreshold must be positive")
-	}
 	if len(msg.Members) == 0 {
 		return sdk.ErrUnknownRequest("Members cannot be empty")
 	}
