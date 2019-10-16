@@ -66,6 +66,13 @@ The `GroupID`
 An instance of:
 
 ```go
+type Tally struct {
+	YesCount sdk.Int
+	NoCount sdk.Int
+	AbstainCount sdk.Int
+	VetoCount sdk.Int
+}
+__
 // DecisionPolicy allows for flexibility in decision policy based both on
 // weights (the tally of yes, no, abstain, and veto votes) and time (via
 // the block header proposalSubmitTime)
