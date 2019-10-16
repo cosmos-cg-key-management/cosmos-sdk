@@ -27,6 +27,11 @@ type Member struct {
 }
 ```
 
+#### `Owner sdk.ACcAddress`
+
+Owner is the account which "owns" the group and has the permission to 
+add and remove memers.
+
 #### `Memo string`
 
 A single string memo
@@ -36,6 +41,8 @@ A single string memo
 #### `Member`
 
 It should be possible to look-up groups by member
+
+#### `Owner`
 
 ## Group Accounts
 
@@ -67,6 +74,12 @@ type DecisionPolicy interface {
 }
 ```
 
+#### `Owner sdk.ACcAddress`
+
+Owner is the account which "owns" the group account and has the permission to
+change its `DecisionPolicy`. It should be left `nil` if the group account
+"owns" itself.
+
 #### `Memo string`
 
 A single string memo.
@@ -77,10 +90,54 @@ A single string memo.
 
 It should be possible to look-up group accounts by group ID.
 
+#### `Owner`
+
 ## Proposals
 
-## Votes
+### ID
 
+Proposals get an auto-incremented ID:
+```go
+type Proposal uint64
+```
 
+### Properties
+
+#### `Proposer sdk.AccAddress`
+
+#### `GroupAccount sdk.AccAddress`
+
+#### `Msgs []sdk.Msg`
+
+#### `SubmittedHeight int64`
+
+#### `SubmittedTime time.Time`
+
+#### `Votes []Vote`
+
+```go
+type Choice int
+
+const (
+	No Choice = iota
+	Yes
+	Abstain
+	Veto
+)
+
+type Vote struct {
+  Voter sdk.AccAddress
+  Choice Choice
+}
+```
+
+### Indexes
+
+### `GroupAccount`
+### `Proposer`
+### `SuvmittedTime`
+### `Voter`
+
+It should be possible to look up proposal votes by voter address
 
 
