@@ -4,7 +4,27 @@
 
 Groups are simply aggregations of members.
 
-### ID
+### Key Value Store Layout
+
+| Key                 | Description              | Type              |
+|---------------------|--------------------|--------------------------|
+| `g/<group>/desc`  | Group description    | `string`  |
+| `g/<group>/<member>`  | Member's voting power    | `sdk.Int`  |
+| `g/<group>/<member>/desc`  | Member description    | `string`  |
+| `g/<group>/owner`  | Group owner    | `sdk.AccAdress`  |
+| `g/<group>/totalPower`  | Group's computed total power    | `sdk.Int`  |
+| `mg/<member>/<group>`  |  Member -> group reverse index  | empty |
+| `og/<owner>/<group>`  |  Owner -> group reverse index  | empty |
+
+### Key Types
+
+| Key                 | Type             |
+|---------------------|------------------|
+| `<group>`  | `GroupID`  |
+| `<owner>`  | `sdk.AccAddress`  |
+| `<member>`  | `sdk.AccAddress`  |
+
+### Custom Types
 
 ```go
 type GroupID []byte
@@ -14,66 +34,32 @@ type GroupID []byte
 prefix `0`. This prefix allows other group composition mechanisms in the future,
 specifically via token ownership rather than group membership.
 
-### Properties
-
-#### `Members []Member`
-
-An array of `Member` structs:
-
-```go
-// Member specifies a address and a power for a group member
-type Member struct {
-	// The address of a group member. Can be another group or a contract
-	Address sdk.AccAddress `json:"address"`
-	// The integral power of this member with respect to other members and the decision threshold
-	Power sdk.Int `json:"power"`
-}
-```
-
-#### `Owner sdk.ACcAddress`
-
-Owner is the account which "owns" the group and has the permission to 
-add and remove memers.
-
-#### `Memo string`
-
-A single string memo.
-
-#### Indexes
-
-#### `Member`
-
-It should be possible to look-up groups by member address.
-
-#### `Owner`
-
-It should be possible to look-up groups by owner address.
-
-#### `TotalPower sdk.Int`
-
-The sum total power of all member powers should be cached for quick tallying.
-
-
 ## Group Accounts
 
-Group accounts associate a group with a decision policy
+Group accounts associate a group with a decision policy.
 
-### ID
+### Key-Value Store Layout
 
-Group accounts are identified by an `sdk.AccAddress` generated
-from an auto-incremented `uint64`.
+| Key                 | Description              | Type              |
+|---------------------|--------------------|--------------------------|
+| `a/<group-account>/description`  | Group account description    | `string`  |
+| `a/<group-account>/group`  | Group account's underlying group    | `GroupID`  |
+| `a/<group-account>/decisionPolicy`  | Group account's decision policy    | `DecisionPolicy`  |
+| `a/<group-account>/owner`  | Group account's owner | `sdk.AccAddress`  |
+| `ga/<group>/<group-account>`  | Group -> group account reverse index  | empty |
+| `oa/<owner>/<group-account>`  | Owner -> group account reverse index  | empty |
 
-*TODO:* How to encode group addresses?
+### Key Types
 
-### Properties
+| Key                 | Type             | Description |
+|---------------------|------------------| ------------|
+| `<group-account>`  | `GroupID`  | Generated from an auto-incremented `uint64` |
+| `<group>`  | `GroupID`  | | 
+| `<owner>`  | `sdk.AccAddress`  | |
 
-#### `Group GroupID`
+*TODO:* How to encode group account addresses?
 
-The `GroupID`
-
-### `DecisionPolicy DecisionPolicy`
-
-An instance of:
+### Custom Types
 
 ```go
 type Tally struct {
@@ -91,70 +77,40 @@ type DecisionPolicy interface {
 }
 ```
 
-#### `Owner sdk.ACcAddress`
-
-Owner is the account which "owns" the group account and has the permission to
-change its `DecisionPolicy`. It should be left `nil` if the group account
-"owns" itself.
-
-#### `Memo string`
-
-A single string memo.
-
-#### Indexes
-
-#### `Group`
-
-It should be possible to look-up group accounts by group ID.
-
-#### `Owner`
-
 ## Proposals
 
-### ID
+### Key Value Store Layout
 
-Proposals get an auto-incremented ID:
+| Key                 | Description              | Type              |
+|---------------------|--------------------|--------------------------|
+| `p/<proposal>/desc`  | Proposal description    | `string`  |
+| `p/<proposal>/ga`  | Proposal's group account    | `sdk.AccAddress`  |
+| `p/<proposal>/msgs`  | Messages that will be run if the proposal succeeds    | `[]sdk.Msg`  |
+| `p/<proposal>/proposer`  | Account that proposed the proposal    | `sdk.AccAddress`  |
+| `p/<proposal>/<voter>/vote`  | A voter's vote on the proposal    | `Vote`  |
+| `p/<proposal>/<voter>/comment`  | A voter's comment on their vote | `string`  |
+| `vp/<voter>/<proposal>`  | Voter -> proposal reverse look-up | empty  |
+| `ap/<group-account>/<proposal>`  | Group account -> proposal reverse look-up | empty  |
+| `pp/<proposer>/<proposal>`  | Proposer -> proposal reverse look-up | empty  |
+
+### Key Type
+
+| Key                 | Type             |------|
+|---------------------|------------------|------|
+| `<proposal>`  | `ProposalID`  | auto-incremented `uint64`
+| `<voter>`  | `sdk.AccAddress`  |
+| `<proposer>`  | `sdk.AccAddress`  |
+| `<group-account>`  | `sdk.AccAddress`  |
+
+### Custom Types
+
 ```go
-type Proposal uint64
-```
-
-### Properties
-
-#### `Proposer sdk.AccAddress`
-
-#### `GroupAccount sdk.AccAddress`
-
-#### `Msgs []sdk.Msg`
-
-#### `SubmittedHeight int64`
-
-#### `SubmittedTime time.Time`
-
-#### `Votes []Vote`
-
-```go
-type Choice int
+type Vote int
 
 const (
-	No Choice = iota
-	Yes
-	Abstain
-	Veto
+	No Vote = 0
+	Yes = 1
+	Abstain = 2
+	Veto = 3
 )
-
-type Vote struct {
-  Voter sdk.AccAddress
-  Choice Choice
-}
 ```
-
-### Indexes
-
-### `GroupAccount`
-### `Proposer`
-### `SuvmittedTime`
-### `Voter`
-
-It should be possible to look up proposal votes by voter address
-
-
