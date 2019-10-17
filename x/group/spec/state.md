@@ -6,10 +6,13 @@ Groups are simply aggregations of members.
 
 ### ID
 
-They have an auto-incremented ID:
 ```go
-type GroupID uint64
+type GroupID []byte
 ```
+
+`GroupID` is generated from an auto-incrementing `uint64` preprended with the
+prefix `0`. This prefix allows other group composition mechanisms in the future,
+specifically via token ownership rather than group membership.
 
 ### Properties
 
@@ -18,12 +21,12 @@ type GroupID uint64
 An array of `Member` structs:
 
 ```go
-// Member specifies a address and a weight for a group member
+// Member specifies a address and a power for a group member
 type Member struct {
 	// The address of a group member. Can be another group or a contract
 	Address sdk.AccAddress `json:"address"`
-	// The integral weight of this member with respect to other members and the decision threshold
-	Weight sdk.Int `json:"weight"`
+	// The integral power of this member with respect to other members and the decision threshold
+	Power sdk.Int `json:"power"`
 }
 ```
 
@@ -34,15 +37,22 @@ add and remove memers.
 
 #### `Memo string`
 
-A single string memo
+A single string memo.
 
 #### Indexes
 
 #### `Member`
 
-It should be possible to look-up groups by member
+It should be possible to look-up groups by member address.
 
 #### `Owner`
+
+It should be possible to look-up groups by owner address.
+
+#### `TotalPower sdk.Int`
+
+The sum total power of all member powers should be cached for quick tallying.
+
 
 ## Group Accounts
 
@@ -74,10 +84,10 @@ type Tally struct {
 }
 __
 // DecisionPolicy allows for flexibility in decision policy based both on
-// weights (the tally of yes, no, abstain, and veto votes) and time (via
+// powers (the tally of yes, no, abstain, and veto votes) and time (via
 // the block header proposalSubmitTime)
 type DecisionPolicy interface {
-	Allow(tally Tally, totalPower sdk.Int, header types.Header, proposalSubmitTime time.Time)
+	Allow(tally Tally, totalPower sdk.Int, header types.Header, submittedTime time.Time, submittedHeight int64)
 }
 ```
 
