@@ -70,10 +70,10 @@ type Tally struct {
 }
 __
 // DecisionPolicy allows for flexibility in decision policy based both on
-// powers (the tally of yes, no, abstain, and veto votes) and time (via
-// the block header proposalSubmitTime)
+// powers (the tally of yes, no, abstain, and veto votes) and time since voting
+// started
 type DecisionPolicy interface {
-	Allow(tally Tally, totalPower sdk.Int, header types.Header, submittedTime time.Time, submittedHeight int64)
+	Allow(tally Tally, totalPower sdk.Int, timeSinceVotingStart time.Duration)
 }
 ```
 
@@ -87,6 +87,7 @@ type DecisionPolicy interface {
 | `p/<proposal>/ga`  | Proposal's group account    | `sdk.AccAddress`  |
 | `p/<proposal>/msgs`  | Messages that will be run if the proposal succeeds    | `[]sdk.Msg`  |
 | `p/<proposal>/proposer`  | Account that proposed the proposal    | `sdk.AccAddress`  |
+| `p/<proposal>/votingStart`  | When voting started    | `time.Time`  |
 | `p/<proposal>/<voter>/vote`  | A voter's vote on the proposal    | `Vote`  |
 | `p/<proposal>/<voter>/comment`  | A voter's comment on their vote | `string`  |
 | `vp/<voter>/<proposal>`  | Voter -> proposal reverse look-up | empty  |
