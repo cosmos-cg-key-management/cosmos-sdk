@@ -7,7 +7,6 @@
 A single user may want to have an account that requires at least two out of
 three key to sign for instance.
 
-
 That use may also want to have an account that isn't tied to a single permanent
 key but rather where they can add and remove keys as their needs evolve. The
 member keys could be tied to a single device or hardware wallet, or potentially
@@ -15,7 +14,11 @@ tied to a custodial service that users other mechanisms to support MFA
 
 ### UC2: Organizational Accounts
 
+A group of people that know each other.
+
 ### UC3: DAO's
+
+A group of people that may or may not know each other.
 
 ## Requirements
 

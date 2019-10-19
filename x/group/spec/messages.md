@@ -1,26 +1,79 @@
 ```go
 // Groups get their own GroupID
 type MsgCreateGroup struct {
-	Signer sdk.AccAddress `json:"signer"`
 	// The Owner of the group is allowed to change the group structure. A group account
 	// can own a group in order for the group to be able to manage its own members
 	Owner  sdk.AccAddress `json:"owner"`
 	// The members of the group and their associated weight
 	Members []Member `json:"members,omitempty"`
 	// TODO maybe make this something more specific to a domain name or a claim on identity? or Info leave it generic
-	Memo string `json:"memo,omitempty"`
+	Description string `json:"Description,omitempty"`
+    DecisionPolicy DecisionPolicy `json:"decision_policy"`
+}
+
+type MsgUpdateGroupOwner struct {
+	Owner  sdk.AccAddress `json:"owner"`
+	Group  sdk.AccAddress `json:"group"`
+	NewOwner  sdk.AccAddress `json:"new_owner"`
+}
+
+type MsgUpdateGroupDecisionPolicy struct {
+	Owner  sdk.AccAddress `json:"owner"`
+	Group  sdk.AccAddress `json:"group"`
+    DecisionPolicy DecisionPolicy `json:"decision_policy"`
+}
+
+type MsgUpdateGroupDescription struct {
+	Owner  sdk.AccAddress `json:"owner"`
+	Group  sdk.AccAddress `json:"group"`
+	Description string `json:"Description,omitempty"`
+}
+
+type MsgUpdateGroupMembers struct {
+	Owner  sdk.AccAddress `json:"owner"`
+	Group  sdk.AccAddress `json:"group"`
+	Members []Member `json:"members,omitempty"`
 }
 
 // group accounts get their own sdk.AccAddress
-type MsgCreateGroupAccount struct {
-	Signer         sdk.AccAddress `json:"signer"`
-	// The Owner of a group account is allowed to change the DecisionPolicy. This can be left nil 
-	// in order for the group account to "own" itself
+type MsgCreateGroupPolicy struct {
 	Owner          sdk.AccAddress `json:"owner"`
-	Group          GroupID        `json:"group"`
+	Group          sdk.AccAddress `json:"group"`
 	DecisionPolicy DecisionPolicy `json:"decision_policy"`
-	Memo           string         `json:"memo,omitempty"`
+	Description string `json:"Description,omitempty"`
 }
+
+// group accounts get their own sdk.AccAddress
+type MsgGroupPolicyGrant struct {
+	Owner          sdk.AccAddress `json:"owner"`
+    Policy         GroupPolicyID
+    Capability     Capability    
+	Expiration time.Time      `json:"expiration"`
+}
+
+type MsgGroupPolicyRevoke struct {
+	Owner          sdk.AccAddress `json:"owner"`
+    Policy         GroupPolicyID
+    MsgType sdk.Msg        `json:"msg_type"`
+}
+
+type MsgUpdateGroupPolicy struct {
+	Owner  sdk.AccAddress `json:"owner"`
+    Policy         GroupPolicyID
+    DecisionPolicy DecisionPolicy `json:"decision_policy"`
+}
+
+type MsgUpdateGroupPolicyDescription struct {
+	Owner  sdk.AccAddress `json:"owner"`
+    Policy         GroupPolicyID
+    DecisionPolicy DecisionPolicy `json:"decision_policy"`
+}
+
+type MsgDeleteGroupPolicy struct {
+	Owner  sdk.AccAddress `json:"owner"`
+    Policy         GroupPolicyID
+}
+
 type MsgCreateProposal struct {
 	Proposer sdk.AccAddress `json:"proposer"`
 	GroupAccount    sdk.AccAddress `json:"group"`
@@ -42,5 +95,20 @@ type MsgVote struct {
 type MsgTryExecuteProposal struct {
 	ProposalID ProposalID     `json:"proposal_id"`
 	Signer     sdk.AccAddress `json:"signer"`
+}
+
+type MsgDelegateVote struct {
+	Delegator  sdk.AccAddress `json:"delegator"`
+	Delegate  sdk.AccAddress `json:"delegate"`
+}
+
+type MsgUndelegateVote struct {
+	Delegator  sdk.AccAddress `json:"delegator"`
+}
+
+type MsgDeposit struct {
+	ProposalID ProposalID     `json:"proposal_id"`
+	Depositor  sdk.AccAddress `json:"depositor"`
+    Deposit sdk.Coins
 }
 ```
